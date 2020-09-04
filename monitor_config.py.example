@@ -1,0 +1,22 @@
+monitor_config = {
+    'interval': 120,
+    'heartbeatFile': 'heartbeat.txt',
+    'heartbeatHours': 3,
+    'recipients': ['me@mydomain.com'],
+    'mail_user': 'me@mydomain.com',
+    'mail_pass': 'password',
+    'mail_server': 'smtp.mydomain.com',
+    'mail_server_port': 587,
+    'init_sound': 'bugle',
+    'heartbeat_sound': 'mechanical',
+    'error_sound': 'siren',
+    'success_sound': 'pianobar',
+    'notification_user': 'user',
+    'notification_token': 'token',
+    'notification_url': 'https://api.pushover.net/1/messages.json',
+    'app_name': 'Monitor',
+    'mqtt_broker': 'mybroker.com',
+    'mqtt_port': 1883,
+    'mqtt_topic': 'topic/notify',
+    'mqtt_qos': 2
+}
