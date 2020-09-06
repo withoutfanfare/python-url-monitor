@@ -13,6 +13,7 @@ import smtplib
 import time
 import _thread
 import socket
+import os
 import os.path
 import math
 import logging
@@ -25,6 +26,7 @@ from octopus import Octopus
 from datetime import datetime
 from repeat_timer import RepeatTimer
 from mqtt_pub import pub
+import paho.mqtt.client as mqtt
 from monitor_config import monitor_config
 from servers import server_list
 from server import Server
@@ -164,14 +166,13 @@ class Monitor(object):
             _thread.start_new_thread(server.check_status, ())
             time.sleep(0.1)
 
-        # time.sleep(len(self.servers))
+        time.sleep(1)
         down_servers = self.getDownServers()
 
         if len(down_servers) > 0:
             self.notifyDown(down_servers)
         else:
             mes = "UP @ " + self.get_now()
-
             logging.info(mes)
             self.client.publish(mes)
             self.reset()
@@ -307,9 +308,34 @@ if __name__ == "__main__":
     MQTT_KEEPALIVE_INTERVAL = CHECK_INTERVAL * 2
 
     p = pub(MQTT_BROKER, MQTT_PORT, MQTT_KEEPALIVE_INTERVAL, MQTT_TOPIC)
-    p.publish('Initialise')
 
     monitor = Monitor(server_list, monitor_config, p)
     monitor.run()
-    #end
 
+    print("CREATE CLIENT")
+    client = mqtt.Client()
+
+    def on_connect(client, userdata, flags, rc):
+        logging.debug("Connected with result code: " + str(rc))
+        logging.info('Subscribing')
+        client.subscribe(MQTT_TOPIC)
+
+
+    def on_message(client, userdata, msg):
+        m = msg.payload.decode('utf-8')
+        logging.info(m)
+        if "OK" in m:
+            bg = pendingBg
+        if "REBOOT" in m:
+            os.system("sudo systemctl reboot -i")
+        if "SHUTDOWN" in m:
+            os.system("sudo shutdown -h now")
+
+
+    client.on_connect = on_connect
+    client.on_message = on_message
+
+    client.connect(MQTT_BROKER, MQTT_PORT)
+    client.loop_forever()
+
+    #end
