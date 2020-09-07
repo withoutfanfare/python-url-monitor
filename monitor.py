@@ -34,7 +34,7 @@ from server import Server
 args = []
 kwargs = {}
 
-logging.basicConfig(filename='debug.log', level=logging.DEBUG)
+logging.basicConfig(filename='/tmp/debug.log', level=logging.DEBUG)
 
 def create_request(urls, method, kwargs):
     data = []
@@ -91,6 +91,13 @@ class Monitor(object):
         self.learnIp()
         self.startChecks()
 
+        self.notify(self.app_name + ' Started', self.init_sound)
+        self.client.publish(self.app_name + ' Started') 
+        
+        time.sleep(2)
+
+        self.checkServers()
+
 
 
     def startChecks(self):
@@ -133,7 +140,8 @@ class Monitor(object):
 
     def get_now(self):
         now = datetime.now()
-        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        # dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        dt_string = now.strftime("%d/%m/%Y %H:%M")
         return dt_string
 
 
@@ -145,22 +153,19 @@ class Monitor(object):
         self.ip = ip
         s.close()
         self.client.publish(self.hostname + " @ " + ip)
+        time.sleep(2)
         logging.info(self.hostname + " IP " + ip)
 
 
 
     def run(self):
         logging.info("Run: " + self.app_name)
-        self.notify(self.app_name + ' Started', self.init_sound)
-        self.client.publish(self.app_name + ' Started')
         self.repeat_timer.start()
 
 
 
     def checkServers(self, *args, **kwargs):
         self.heartbeat()
-
-        # self.client.publish("Check URLs")
 
         for server in self.servers:
             _thread.start_new_thread(server.check_status, ())
@@ -182,7 +187,8 @@ class Monitor(object):
     def getDownServers(self):
         down_servers = []
         for server in self.servers:
-            if server.status != 'OK' and server.fails >= server.max_fails and server.notified_fail == False:
+             # if server.status != 'OK' and server.fails >= server.max_fails and server.notified_fail == False: 
+             if server.status != 'OK' and server.fails >= server.max_fails: 
                 down_servers.append(server)
         return down_servers
 
@@ -198,12 +204,12 @@ class Monitor(object):
             message += text
             server.notified_fail = True
 
-            mes = "Site Down: " + server.name
+            mes = "Down: " + server.name
             logging.info(mes)
             self.client.publish(mes)
-            time.sleep(2)
+            time.sleep(1)
 
-        time.sleep(1)
+        time.sleep(2)
 
         self.notify(message, self.error_sound)
 
@@ -337,5 +343,4 @@ if __name__ == "__main__":
 
     client.connect(MQTT_BROKER, MQTT_PORT)
     client.loop_forever()
-
     #end

@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import json
 import logging
 
-logging.basicConfig(filename='debug.log', level=logging.DEBUG)
+logging.basicConfig(filename='/tmp/debug.log', level=logging.DEBUG)
 
 class pub:
     def __init__(self,MQTT_BROKER,MQTT_PORT,MQTT_KEEPALIVE_INTERVAL,MQTT_TOPIC,transport = ''):

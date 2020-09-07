@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 import logging
 
-logging.basicConfig(filename='debug.log', level=logging.DEBUG)
+logging.basicConfig(filename='/tmp/debug.log', level=logging.DEBUG)
 
 class Server:
 
