@@ -92,7 +92,7 @@ class Monitor(object):
         self.startChecks()
 
         self.notify(self.app_name + ' Started', self.init_sound)
-        self.client.publish(self.app_name + ' Started') 
+        self.client.publish(self.app_name + ' Started|' + self.get_time() + "|" + self.get_date()) 
         
         time.sleep(2)
 
@@ -137,13 +137,14 @@ class Monitor(object):
                                         **kwargs)
 
 
-
-    def get_now(self):
+    def get_date(self):
         now = datetime.now()
-        # dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-        dt_string = now.strftime("%d/%m/%Y %H:%M")
-        return dt_string
+        return now.strftime("%d/%m/%Y")
 
+
+    def get_time(self):
+        now = datetime.now()
+        return now.strftime("%H:%M")
 
 
     def learnIp(self):
@@ -152,8 +153,8 @@ class Monitor(object):
         ip = s.getsockname()[0]
         self.ip = ip
         s.close()
-        self.client.publish(self.hostname + " @ " + ip)
-        time.sleep(2)
+        self.client.publish(self.hostname + "|" + ip)
+        time.sleep(3)
         logging.info(self.hostname + " IP " + ip)
 
 
@@ -177,7 +178,8 @@ class Monitor(object):
         if len(down_servers) > 0:
             self.notifyDown(down_servers)
         else:
-            mes = "UP @ " + self.get_now()
+            mes = "UP|" + self.get_time() + "|" + self.get_date()
+
             logging.info(mes)
             self.client.publish(mes)
             self.reset()
@@ -204,7 +206,7 @@ class Monitor(object):
             message += text
             server.notified_fail = True
 
-            mes = "Down: " + server.name
+            mes = "Down|" + server.name
             logging.info(mes)
             self.client.publish(mes)
             time.sleep(1)
@@ -213,7 +215,7 @@ class Monitor(object):
 
         self.notify(message, self.error_sound)
 
-        mes = "DOWN @ " + self.get_now()
+        mes = "DOWN|" + self.get_time() + "|" + self.get_date()
         logging.info(mes)
         self.client.publish(mes)
 
@@ -256,7 +258,7 @@ class Monitor(object):
             hours = math.floor(((datetime.now() - dt_last).total_seconds()) / 3600)
             if(hours > self.heartbeatHours):
                 self.notify(a_name + ' Heartbeat', self.heartbeat_sound)
-                self.client.publish("Heartbeat OK " + self.get_now())
+                self.client.publish("Heartbeat|" + self.get_time() + "|" + self.get_date())
                 # for recipient in self.recipients:
                 self.writeHeartbeat()
         else:
@@ -265,7 +267,7 @@ class Monitor(object):
 
 
     def writeHeartbeat(self):
-        logging.info("writeHeartbeat")
+        # logging.info("writeHeartbeat")
         filePath = self.heartbeatFile
         f = open(filePath,"w")
         f.write(datetime.now().strftime('%b %d %Y %I:%M%p'))
@@ -318,12 +320,12 @@ if __name__ == "__main__":
     monitor = Monitor(server_list, monitor_config, p)
     monitor.run()
 
-    print("CREATE CLIENT")
+    # print("CREATE CLIENT")
     client = mqtt.Client()
 
     def on_connect(client, userdata, flags, rc):
+        print("Connected with result code: " + str(rc))
         logging.debug("Connected with result code: " + str(rc))
-        logging.info('Subscribing')
         client.subscribe(MQTT_TOPIC)
 
 
