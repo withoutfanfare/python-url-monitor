@@ -178,7 +178,7 @@ class Monitor(object):
         if len(down_servers) > 0:
             self.notifyDown(down_servers)
         else:
-            mes = "UP|" + self.get_time() + "|" + self.get_date()
+            mes = "UP @ " + self.get_time() + "|" + self.get_date()
 
             logging.info(mes)
             self.client.publish(mes)
@@ -215,7 +215,7 @@ class Monitor(object):
 
         self.notify(message, self.error_sound)
 
-        mes = "DOWN|" + self.get_time() + "|" + self.get_date()
+        mes = "DOWN @ " + self.get_time() + "|" + self.get_date()
         logging.info(mes)
         self.client.publish(mes)
 
@@ -258,7 +258,7 @@ class Monitor(object):
             hours = math.floor(((datetime.now() - dt_last).total_seconds()) / 3600)
             if(hours > self.heartbeatHours):
                 self.notify(a_name + ' Heartbeat', self.heartbeat_sound)
-                self.client.publish("Heartbeat|" + self.get_time() + "|" + self.get_date())
+                self.client.publish("Heartbeat @ " + self.get_time() + "|" + self.get_date())
                 # for recipient in self.recipients:
                 self.writeHeartbeat()
         else:
