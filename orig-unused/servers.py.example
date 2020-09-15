@@ -1,0 +1,12 @@
+server_list = [
+    {'name': 'Google',
+     'url': 'https://google.co.uk',
+     'timeout': 300,
+     'max_fails': 1,
+     'assert_string': ''},
+    {'name': 'Bing',
+     'url': 'https://bing.com',
+     'timeout': 300,
+     'max_fails': 1,
+     'assert_string': 'Bing'}
+]
