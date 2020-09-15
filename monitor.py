@@ -28,7 +28,6 @@ from repeat_timer import RepeatTimer
 from mqtt_pub import pub
 import paho.mqtt.client as mqtt
 from monitor_config import monitor_config
-# from servers import server_list
 from server import Server
 import mysql.connector
 from mysql.connector import Error
