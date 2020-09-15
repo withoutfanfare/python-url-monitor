@@ -36,20 +36,21 @@ class Server:
         else:
             self.status_code = r.status_code
             if r.status_code == 200:
-                if self.assert_string in r.text:
-                    self.status = 'OK'
-                    self.fails = 0
-                    self.notified_fail = False
-                    self.assert_pass = True
-                else:
-                    self.status = 'Assert Failed'
-                    self.fails += 1
-                    self.assert_pass = False
+                if self.assert_string and self.assert_string != "":
+                    if self.assert_string in r.text:
+                        self.status = 'OK'
+                        self.fails = 0
+                        self.notified_fail = False
+                        self.assert_pass = True
+                    else:
+                        self.status = 'Assert Failed'
+                        self.fails += 1
+                        self.assert_pass = False
             else:
                 self.fails += 1
                 self.status = 'ERROR'
 
-        # time.sleep(0.1)
+        time.sleep(0.1)
 
         logging.info("Status: " + self.name)
         logging.info(self.status)

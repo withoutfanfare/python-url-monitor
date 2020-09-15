@@ -28,10 +28,8 @@ from repeat_timer import RepeatTimer
 from mqtt_pub import pub
 import paho.mqtt.client as mqtt
 from monitor_config import monitor_config
-# from servers import server_list
+from servers import server_list
 from server import Server
-import mysql.connector
-from mysql.connector import Error
 
 args = []
 kwargs = {}
@@ -94,17 +92,20 @@ class Monitor(object):
         self.startChecks()
 
         self.notify(self.app_name + ' Started', self.init_sound)
-        self.client.publish(self.app_name + ' Started|' + self.get_time() + "|" + self.get_date())
-
+        self.client.publish(self.app_name + ' Started|' + self.get_time() + "|" + self.get_date()) 
+        
         time.sleep(2)
 
         self.checkServers()
 
 
+
     def startChecks(self):
         """Initalise timer and heartbeat"""
+
         self.heartbeat()
         self.getTimer()
+
 
 
     def notify(self, mymessage, sound):
@@ -122,8 +123,10 @@ class Monitor(object):
             })
 
 
+
     def cancelTimer(self):
         self.repeat_timer.cancel()
+
 
 
     def getTimer(self):
@@ -155,9 +158,11 @@ class Monitor(object):
         logging.info(self.hostname + " IP " + ip)
 
 
+
     def run(self):
         logging.info("Run: " + self.app_name)
         self.repeat_timer.start()
+
 
 
     def checkServers(self, *args, **kwargs):
@@ -180,13 +185,15 @@ class Monitor(object):
             self.reset()
 
 
+
     def getDownServers(self):
         down_servers = []
         for server in self.servers:
-             # if server.status != 'OK' and server.fails >= server.max_fails and server.notified_fail == False:
-             if server.status != 'OK' and server.fails >= server.max_fails:
+             # if server.status != 'OK' and server.fails >= server.max_fails and server.notified_fail == False: 
+             if server.status != 'OK' and server.fails >= server.max_fails: 
                 down_servers.append(server)
         return down_servers
+
 
 
     def notifyDown(self, down_servers):
@@ -213,31 +220,15 @@ class Monitor(object):
         self.client.publish(mes)
 
 
+
     def getServers(self, server_list):
         servers = []
-
-        # for row in records:
-        #     print("Id = ", row[0], )
-        #     print("Name = ", row[1])
-        #     print("URL  = ", row[2])
-        #     print("Max Fails  = ", row[3])
-        #     print("Assert String  = ", row[4])
-        #     print("Timeout  = ", row[5], "\n")
-
-        # for server in server_list:
-        #     servers.append(Server(name=server['name'],
-        #                           url=server['url'],
-        #                           timeout=server['timeout'],
-        #                           max_fails=server['max_fails'],
-        #                           assert_string=server['assert_string']))
-
         for server in server_list:
-            servers.append(Server(name=server[1],
-                                  url=server[2],
-                                  timeout=server[5],
-                                  max_fails=server[3],
-                                  assert_string=server[4]))
-
+            servers.append(Server(name=server['name'],
+                                  url=server['url'],
+                                  timeout=server['timeout'],
+                                  max_fails=server['max_fails'],
+                                  assert_string=server['assert_string']))
         return servers
 
 
@@ -249,6 +240,7 @@ class Monitor(object):
             server.fails = 0
             server.status = 'OK'
             server.assert_pass = True
+
 
 
     def heartbeat(self):
@@ -273,6 +265,7 @@ class Monitor(object):
             self.writeHeartbeat()
 
 
+
     def writeHeartbeat(self):
         # logging.info("writeHeartbeat")
         filePath = self.heartbeatFile
@@ -281,9 +274,11 @@ class Monitor(object):
         f.close()
 
 
+
     def update(self):
         # logging.info('update')
         self.reset()
+
 
 
     def setMode(self, mode):
@@ -300,8 +295,10 @@ class Monitor(object):
         mode_text = modes.get(mode, "Unknown")
 
 
+
     def getMode(self):
         return self.mode
+
 
 #
 # Run
@@ -318,70 +315,34 @@ if __name__ == "__main__":
     CHECK_INTERVAL = monitor_config['interval']
     MQTT_KEEPALIVE_INTERVAL = CHECK_INTERVAL * 2
 
-    MYSQL_USER = monitor_config['mysql_user']
-    MYSQL_PASSWORD = monitor_config['mysql_password']
-    MYSQL_PORT = monitor_config['mysql_port']
-    MYSQL_HOST = monitor_config['mysql_host']
-    MYSQL_DB = monitor_config['mysql_db']
-    MYSQL_TABLE = monitor_config['mysql_table']
+    p = pub(MQTT_BROKER, MQTT_PORT, MQTT_KEEPALIVE_INTERVAL, MQTT_TOPIC)
 
-    try:
-        connection = mysql.connector.connect(user=MYSQL_USER, password=MYSQL_PASSWORD,
-                                    host=MYSQL_HOST,
-                                    port=MYSQL_PORT,
-                                    database=MYSQL_DB)
+    monitor = Monitor(server_list, monitor_config, p)
+    monitor.run()
 
-        sql_select_Query = "select * from " + str(MYSQL_TABLE)
-        cursor = connection.cursor()
-        cursor.execute(sql_select_Query)
-        records = cursor.fetchall()
+    # print("CREATE CLIENT")
+    client = mqtt.Client()
 
-        print("SERVERS: ", cursor.rowcount)
-
-        for row in records:
-            logging.info("url: " + str(row[2]))
-            print("URL: " + str(row[2]))
-            # print("Id = ", row[0], )
-            # print("Name = ", row[1])
-            # print("URL  = ", row[2])
-            # print("Max Fails  = ", row[3])
-            # print("Assert String  = ", row[4])
-            # print("Timeout  = ", row[5], "\n")
-
-        p = pub(MQTT_BROKER, MQTT_PORT, MQTT_KEEPALIVE_INTERVAL, MQTT_TOPIC)
-
-        monitor = Monitor(records, monitor_config, p)
-        monitor.run()
-
-        print("CREATE CLIENT")
-        client = mqtt.Client()
-
-        def on_connect(client, userdata, flags, rc):
-            print("Connected with result code: " + str(rc))
-            logging.debug("Connected with result code: " + str(rc))
-            client.subscribe(MQTT_TOPIC)
-
-        def on_message(client, userdata, msg):
-            m = msg.payload.decode('utf-8')
-            logging.info(m)
-            if "REBOOT" in m:
-                os.system("sudo systemctl reboot -i")
-            if "SHUTDOWN" in m:
-                os.system("sudo shutdown -h now")
-
-        client.on_connect = on_connect
-        client.on_message = on_message
-
-        client.connect(MQTT_BROKER, MQTT_PORT)
-        client.loop_forever()
+    def on_connect(client, userdata, flags, rc):
+        print("Connected with result code: " + str(rc))
+        logging.debug("Connected with result code: " + str(rc))
+        client.subscribe(MQTT_TOPIC)
 
 
-    except Error as e:
-        print("Error reading data from MySQL table", e)
-        logging.info("Error reading data from MySQL table", e)
-    finally:
-        if (connection.is_connected()):
-            connection.close()
-            cursor.close()
-            # print("MySQL connection is closed")
+    def on_message(client, userdata, msg):
+        m = msg.payload.decode('utf-8')
+        logging.info(m)
+        if "OK" in m:
+            bg = pendingBg
+        if "REBOOT" in m:
+            os.system("sudo systemctl reboot -i")
+        if "SHUTDOWN" in m:
+            os.system("sudo shutdown -h now")
+
+
+    client.on_connect = on_connect
+    client.on_message = on_message
+
+    client.connect(MQTT_BROKER, MQTT_PORT)
+    client.loop_forever()
     #end

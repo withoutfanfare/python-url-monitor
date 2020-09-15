@@ -11,7 +11,9 @@ are publish on a home Mqtt topic to be consumed by other devices.
 ### Requirements
 
 ```
-pip3 install octopus-http
+sudo pip3 install octopus-http
+sudo pip3 install paho-mqtt
+
 ```
 
 ### Usage
