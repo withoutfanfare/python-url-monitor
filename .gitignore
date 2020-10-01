@@ -1,5 +1,7 @@
 *.pyc
 /private
+/.nova
+/.vscode
 /tmp
 /.cghooks.lock
 /_ide_helper.php
