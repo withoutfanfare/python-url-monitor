@@ -22,7 +22,6 @@ class Server:
         self.assert_pass = False
 
 
-
     def check_status(self):
         self.last_checked = datetime.now()
 
