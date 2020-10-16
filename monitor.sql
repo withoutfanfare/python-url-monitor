@@ -47,7 +47,7 @@ CREATE TABLE `servers` (
 
 LOCK TABLES `servers` WRITE;
 /*!40000 ALTER TABLE `servers` DISABLE KEYS */;
-INSERT INTO `servers` VALUES (1,'StuntRocket','https://somedomain.com',1,'Hand Crafted Web',300);
+INSERT INTO `servers` VALUES (1,'StuntRocket','https://stuntrocket.co',1,'Hand Crafted Web',300);
 INSERT INTO `servers` VALUES (2,'Instoria','https://instoria.co.uk',1,'Instore Retail App',300);
 INSERT INTO `servers` VALUES (3,'Geyser','https://www.geyser.co.uk',1,'Call us on',300);
 INSERT INTO `servers` VALUES (4,'Clever Fish','https://thecleverfish.co.uk',1,'The Clever Fish Recruitment',300);
